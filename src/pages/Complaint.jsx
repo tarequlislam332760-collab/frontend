@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, ShieldCheck, Clock, CheckCircle2, MapPin, Phone, User } from 'lucide-react';
+import { Send, ShieldCheck, Clock, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 
 const Complaint = ({ lang = 'bn' }) => {
@@ -61,18 +61,18 @@ const Complaint = ({ lang = 'bn' }) => {
     setLoading(true); 
     
     try {
-      // ✅ Live Backend URL updated here
+      // ✅ Live Backend API Link Integrated
       const response = await axios.post('https://tareq-backend-server.vercel.app/api/complaints', formData);
       
       if (response.data.success) {
         alert(content.alertSuccess);
         setFormData({ name: '', phone: '', area: '', message: '' });
       } else {
-        alert("Error: " + response.data.message);
+        alert("সার্ভার এরর: " + response.data.message);
       }
     } catch (error) {
       console.error("Submission error:", error);
-      alert(`${content.alertError}`);
+      alert("নেটওয়ার্ক এরর! অনুগ্রহ করে আপনার ইন্টারনেট কানেকশন অথবা ব্যাকএন্ড চেক করুন।");
     } finally {
       setLoading(false);
     }
