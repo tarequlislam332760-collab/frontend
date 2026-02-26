@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, Facebook, Twitter, Youtube, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import axios from 'axios';
 
 const Contact = ({ lang = 'bn' }) => {
@@ -61,8 +61,8 @@ const Contact = ({ lang = 'bn' }) => {
     setIsSubmitting(true);
     
     try {
-      // ✅ Live Backend URL updated here
-      const response = await axios.post('https://tareq-backend-server.vercel.app/api/messages', formData);
+      // ✅ লিঙ্ক আপডেট করা হয়েছে
+      const response = await axios.post('https://backend-phi-eight-82.vercel.app/api/messages', formData);
       
       if (response.data.success) {
         alert(content.alertSuccess);
@@ -72,7 +72,7 @@ const Contact = ({ lang = 'bn' }) => {
       }
     } catch (error) {
       console.error("Submission error:", error);
-      alert(content.alertError);
+      alert("নেটওয়ার্ক এরর! অনুগ্রহ করে ব্যাকএন্ড চেক করুন।");
     } finally {
       setIsSubmitting(false);
     }

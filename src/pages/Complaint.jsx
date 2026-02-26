@@ -61,18 +61,18 @@ const Complaint = ({ lang = 'bn' }) => {
     setLoading(true); 
     
     try {
-      // ✅ Live Backend API Link Integrated
-      const response = await axios.post('https://tareq-backend-server.vercel.app/api/complaints', formData);
+      // ✅ লিঙ্ক আপডেট করা হয়েছে
+      const response = await axios.post('https://backend-phi-eight-82.vercel.app/api/complaints', formData);
       
       if (response.data.success) {
         alert(content.alertSuccess);
         setFormData({ name: '', phone: '', area: '', message: '' });
       } else {
-        alert("সার্ভার এরর: " + response.data.message);
+        alert("সার্ভার এরর: " + response.data.error);
       }
     } catch (error) {
       console.error("Submission error:", error);
-      alert("নেটওয়ার্ক এরর! অনুগ্রহ করে আপনার ইন্টারনেট কানেকশন অথবা ব্যাকএন্ড চেক করুন।");
+      alert("নেটওয়ার্ক এরর! অনুগ্রহ করে ইন্টারনেট কানেকশন চেক করুন।");
     } finally {
       setLoading(false);
     }
