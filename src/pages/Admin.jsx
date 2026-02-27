@@ -12,7 +12,7 @@ const Admin = () => {
 
   // ✅ এখানে আপনার ইমেইল এবং বড় পাসওয়ার্ডটি দিন
   const ADMIN_EMAIL = "vemanavijaykumar154@gmail.com";
-  const ADMIN_PASS = "আপনার_বড়_পাসওয়ার্ড_এখানে_লিখুন"; // উদাহরণ: "Bangla12345678"
+  const ADMIN_PASS = "doctor tuhin"; // উদাহরণ: "Bangla12345678"
 
   const handleLogin = (e) => {
     e.preventDefault();
