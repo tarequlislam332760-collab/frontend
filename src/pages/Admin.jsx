@@ -10,39 +10,45 @@ const Admin = () => {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // নতুন কন্টেন্ট আপলোড করার স্টেট
   const [form, setForm] = useState({ title: '', image: '', desc: '', category: 'project' });
 
   const ADMIN_EMAIL = "vemanavijaykumar154@gmail.com";
   const ADMIN_PASS = "doctor tuhin"; 
   const API_URL = "https://backend-phi-eight-82.vercel.app";
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (email.trim() === ADMIN_EMAIL && password === ADMIN_PASS) {
-      setIsLoggedIn(true);
-      fetchData();
-    } else {
-      alert("ভুল ইমেইল বা পাসওয়ার্ড!");
-    }
-  };
-
+  // ✅ ডাটা ফেচ করার মূল ফাংশন
   const fetchData = async () => {
     setLoading(true);
     try {
       const resC = await axios.get(`${API_URL}/api/complaints`);
       const resP = await axios.get(`${API_URL}/api/projects`);
-      setComplaints(resC.data);
-      setProjects(resP.data);
+      
+      // ডাটা Array কিনা নিশ্চিত হয়ে সেট করা
+      setComplaints(Array.isArray(resC.data) ? resC.data : []);
+      setProjects(Array.isArray(resP.data) ? resP.data : []);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ নতুন প্রোজেক্ট/ব্লগ সেভ করার ফাংশন
+  // ✅ লগইন অবস্থায় থাকলে অটোমেটিক ডাটা লোড হবে
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchData();
+    }
+  }, [isLoggedIn]);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (email.trim() === ADMIN_EMAIL && password === ADMIN_PASS) {
+      setIsLoggedIn(true);
+    } else {
+      alert("ভুল ইমেইল বা পাসওয়ার্ড!");
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     try {
@@ -51,11 +57,10 @@ const Admin = () => {
       setForm({ title: '', image: '', desc: '', category: 'project' });
       fetchData(); 
     } catch (err) {
-      alert("সেভ করা সম্ভব হয়নি। নেটওয়ার্ক চেক করুন।");
+      alert("সেভ করা সম্ভব হয়নি।");
     }
   };
 
-  // ✅ কার্ড ডিলিট করার ফাংশন
   const handleDelete = async (id) => {
     if (window.confirm("আপনি কি এটি মুছে ফেলতে চান?")) {
       try {
@@ -74,7 +79,6 @@ const Admin = () => {
           <div className="text-center mb-6">
             <ShieldCheck className="mx-auto text-emerald-600 mb-2" size={48} />
             <h2 className="text-2xl font-bold text-slate-800">অ্যাডমিন লগইন</h2>
-            <p className="text-slate-500 text-sm mt-1">সুরক্ষিত প্রবেশের জন্য তথ্য দিন</p>
           </div>
           <input type="email" placeholder="ইমেইল" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3.5 border rounded-xl mb-4 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" required />
           <input type="password" placeholder="পাসওয়ার্ড" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3.5 border rounded-xl mb-6 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" required />
@@ -95,37 +99,38 @@ const Admin = () => {
           <button onClick={() => setIsLoggedIn(false)} className="bg-red-50 text-red-600 px-6 py-2.5 rounded-xl font-bold border border-red-100 flex items-center gap-2 hover:bg-red-100 transition"><LogOut size={18}/> লগআউট</button>
         </div>
 
-        {/* --- কন্টেন্ট আপলোড ফর্ম --- */}
+        {/* --- আপলোড ফর্ম --- */}
         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 mb-12">
           <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-emerald-600"><PlusCircle/> নতুন প্রোজেক্ট বা ব্লগ যোগ করুন</h2>
           <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <input type="text" placeholder="টাইটেল (যেমন: রাস্তা সংস্কার)" value={form.title} onChange={(e)=>setForm({...form, title: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 focus:ring-2 focus:ring-emerald-500" required />
+            <input type="text" placeholder="টাইটেল" value={form.title} onChange={(e)=>setForm({...form, title: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 focus:ring-2 focus:ring-emerald-500" required />
             <input type="text" placeholder="ইমেজ লিঙ্ক (URL)" value={form.image} onChange={(e)=>setForm({...form, image: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 focus:ring-2 focus:ring-emerald-500" required />
-            <select value={form.category} onChange={(e)=>setForm({...form, category: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 font-bold focus:ring-2 focus:ring-emerald-500">
+            <select value={form.category} onChange={(e)=>setForm({...form, category: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 font-bold">
               <option value="project">প্রোজেক্ট</option>
               <option value="blog">ব্লগ</option>
             </select>
             <input type="text" placeholder="ছোট বর্ণনা" value={form.desc} onChange={(e)=>setForm({...form, desc: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 focus:ring-2 focus:ring-emerald-500" required />
-            <button type="submit" className="bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-emerald-700 transition lg:col-span-4 flex justify-center items-center gap-2"><RefreshCw size={20}/> ওয়েবসাইটে সেভ করুন</button>
+            <button type="submit" className="bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-emerald-700 transition lg:col-span-4 flex justify-center items-center gap-2">
+              <RefreshCw size={20} className={loading ? "animate-spin" : ""} /> ওয়েবসাইটে সেভ করুন
+            </button>
           </form>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* --- আপলোড করা কাজসমূহ --- */}
           <div>
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-slate-700"><LayoutGrid/> আপনার আপলোড করা কাজ</h2>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-slate-700"><LayoutGrid/> আপনার আপলোড করা কাজ ({projects.length})</h2>
             <div className="space-y-4">
-              {projects.length === 0 && <p className="text-slate-400">কোনো প্রোজেক্ট পাওয়া যায়নি।</p>}
-              {projects.map(p => (
-                <div key={p._id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition">
+              {projects.length === 0 ? <p className="text-slate-400">কোনো ডাটা নেই</p> : projects.map(p => (
+                <div key={p._id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between group">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-emerald-500 transition"><ImageIcon size={24}/></div>
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400"><ImageIcon size={24}/></div>
                     <div>
                       <h3 className="font-bold text-slate-800">{p.title}</h3>
-                      <p className="text-xs text-slate-400 uppercase font-black tracking-tighter">{p.category}</p>
+                      <p className="text-xs text-slate-400 uppercase">{p.category}</p>
                     </div>
                   </div>
-                  <button onClick={() => handleDelete(p._id)} className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition"><Trash2 size={20}/></button>
+                  <button onClick={() => handleDelete(p._id)} className="p-3 text-red-400 hover:text-red-600 transition"><Trash2 size={20}/></button>
                 </div>
               ))}
             </div>
@@ -133,16 +138,15 @@ const Admin = () => {
 
           {/* --- অভিযোগ তালিকা --- */}
           <div>
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-slate-700"><MessageSquare/> জনগণের অভিযোগসমূহ</h2>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-slate-700"><MessageSquare/> জনগণের অভিযোগসমূহ ({complaints.length})</h2>
             <div className="space-y-4">
-              {complaints.length === 0 && <p className="text-slate-400">কোনো অভিযোগ জমা পড়েনি।</p>}
-              {complaints.map(item => (
-                <div key={item._id} className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 border-l-4 border-l-emerald-500">
-                   <div className="flex items-center gap-3 text-slate-800 font-bold mb-2">
+              {complaints.length === 0 ? <p className="text-slate-400">কোনো অভিযোগ নেই</p> : complaints.map(item => (
+                <div key={item._id} className="bg-white p-6 rounded-[2rem] shadow-sm border border-l-4 border-l-emerald-500">
+                  <div className="flex items-center gap-3 text-slate-800 font-bold mb-2">
                     <User size={16} className="text-emerald-500" /> {item.name}
                   </div>
-                  <p className="text-sm text-slate-600 mb-3 leading-relaxed italic">"{item.message}"</p>
-                  <div className="text-[11px] font-bold text-slate-400 bg-slate-50 inline-block px-3 py-1 rounded-lg">ফোন: {item.phone}</div>
+                  <p className="text-sm text-slate-600 mb-3 italic">"{item.message}"</p>
+                  <div className="text-[11px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-lg">ফোন: {item.phone}</div>
                 </div>
               ))}
             </div>
