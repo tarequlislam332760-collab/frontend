@@ -1,157 +1,149 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { RefreshCw, MessageSquare, Phone, User, LogOut, ShieldCheck, Trash2, PlusCircle, LayoutGrid, Image as ImageIcon } from 'lucide-react';
+import { RefreshCw, MessageSquare, Phone, User, MapPin, LogOut, ShieldCheck } from 'lucide-react';
 
 const Admin = () => {
-  const [complaints, setComplaints] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [form, setForm] = useState({ title: '', image: '', desc: '', category: 'project' });
 
+  // ✅ এখানে আপনার ইমেইল এবং বড় পাসওয়ার্ডটি দিন
   const ADMIN_EMAIL = "vemanavijaykumar154@gmail.com";
-  const ADMIN_PASS = "doctor tuhin"; 
-  const API_URL = "https://backend-phi-eight-82.vercel.app";
+  const ADMIN_PASS = "doctor tuhin"; // উদাহরণ: "Bangla12345678"
 
-  // ✅ ডাটা ফেচ করার মূল ফাংশন
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // ইমেইল এবং পাসওয়ার্ড চেক
+    if (email.trim() === ADMIN_EMAIL && password === ADMIN_PASS) {
+      setIsLoggedIn(true);
+      fetchData();
+    } else {
+      alert("ভুল ইমেইল বা পাসওয়ার্ড! আবার চেষ্টা করুন।");
+    }
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const resC = await axios.get(`${API_URL}/api/complaints`);
-      const resP = await axios.get(`${API_URL}/api/projects`);
-      
-      // ডাটা Array কিনা নিশ্চিত হয়ে সেট করা
-      setComplaints(Array.isArray(resC.data) ? resC.data : []);
-      setProjects(Array.isArray(resP.data) ? resP.data : []);
+      const response = await axios.get('https://backend-phi-eight-82.vercel.app/api/complaints');
+      setData(response.data);
     } catch (error) {
       console.error("Error fetching data:", error);
+      alert("ডাটা লোড করতে সমস্যা হয়েছে। ব্যাকএন্ড চেক করুন।");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ লগইন অবস্থায় থাকলে অটোমেটিক ডাটা লোড হবে
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchData();
-    }
-  }, [isLoggedIn]);
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (email.trim() === ADMIN_EMAIL && password === ADMIN_PASS) {
-      setIsLoggedIn(true);
-    } else {
-      alert("ভুল ইমেইল বা পাসওয়ার্ড!");
-    }
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(`${API_URL}/api/projects`, form);
-      alert("সফলভাবে ওয়েবসাইটে যোগ করা হয়েছে!");
-      setForm({ title: '', image: '', desc: '', category: 'project' });
-      fetchData(); 
-    } catch (err) {
-      alert("সেভ করা সম্ভব হয়নি।");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("আপনি কি এটি মুছে ফেলতে চান?")) {
-      try {
-        await axios.delete(`${API_URL}/api/projects/${id}`);
-        fetchData();
-      } catch (err) {
-        alert("মুছে ফেলা সম্ভব হয়নি।");
-      }
-    }
-  };
-
+  // লগইন স্ক্রিন
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4 pt-20">
-        <form onSubmit={handleLogin} className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-200">
-          <div className="text-center mb-6">
-            <ShieldCheck className="mx-auto text-emerald-600 mb-2" size={48} />
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4 pt-20">
+        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl border border-slate-200">
+          <div className="text-center mb-8">
+            <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ShieldCheck className="text-emerald-600" size={32} />
+            </div>
             <h2 className="text-2xl font-bold text-slate-800">অ্যাডমিন লগইন</h2>
+            <p className="text-slate-500 text-sm mt-1">সুরক্ষিত প্রবেশের জন্য তথ্য দিন</p>
           </div>
-          <input type="email" placeholder="ইমেইল" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3.5 border rounded-xl mb-4 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" required />
-          <input type="password" placeholder="পাসওয়ার্ড" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3.5 border rounded-xl mb-6 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" required />
-          <button className="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl hover:bg-emerald-700 transition shadow-lg">লগইন করুন</button>
-        </form>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <input 
+                type="email" 
+                placeholder="ইমেইল অ্যাড্রেস" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-xl border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition-all" 
+                required 
+              />
+            </div>
+            <div>
+              <input 
+                type="password" 
+                placeholder="পাসওয়ার্ড" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-xl border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition-all" 
+                required 
+              />
+            </div>
+            <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95">
+              লগইন করুন
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
 
+  // অ্যাডমিন ড্যাশবোর্ড
   return (
     <div className="pt-24 bg-slate-50 min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-10">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
           <div>
-            <h1 className="text-3xl font-black text-slate-800 tracking-tight">অ্যাডমিন কন্ট্রোল প্যানেল</h1>
-            <p className="text-slate-500">প্রোজেক্ট আপলোড এবং অভিযোগ ব্যবস্থাপনা</p>
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight">অ্যাডমিন ড্যাশবোর্ড</h1>
+            <p className="text-slate-500 mt-1">জনগণের অভিযোগ ও মেসেজ তালিকা</p>
           </div>
-          <button onClick={() => setIsLoggedIn(false)} className="bg-red-50 text-red-600 px-6 py-2.5 rounded-xl font-bold border border-red-100 flex items-center gap-2 hover:bg-red-100 transition"><LogOut size={18}/> লগআউট</button>
-        </div>
-
-        {/* --- আপলোড ফর্ম --- */}
-        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 mb-12">
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-emerald-600"><PlusCircle/> নতুন প্রোজেক্ট বা ব্লগ যোগ করুন</h2>
-          <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <input type="text" placeholder="টাইটেল" value={form.title} onChange={(e)=>setForm({...form, title: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 focus:ring-2 focus:ring-emerald-500" required />
-            <input type="text" placeholder="ইমেজ লিঙ্ক (URL)" value={form.image} onChange={(e)=>setForm({...form, image: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 focus:ring-2 focus:ring-emerald-500" required />
-            <select value={form.category} onChange={(e)=>setForm({...form, category: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 font-bold">
-              <option value="project">প্রোজেক্ট</option>
-              <option value="blog">ব্লগ</option>
-            </select>
-            <input type="text" placeholder="ছোট বর্ণনা" value={form.desc} onChange={(e)=>setForm({...form, desc: e.target.value})} className="border p-4 rounded-2xl outline-none bg-slate-50 focus:ring-2 focus:ring-emerald-500" required />
-            <button type="submit" className="bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-emerald-700 transition lg:col-span-4 flex justify-center items-center gap-2">
-              <RefreshCw size={20} className={loading ? "animate-spin" : ""} /> ওয়েবসাইটে সেভ করুন
+          <div className="flex gap-3">
+            <button onClick={fetchData} className="flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl font-medium text-slate-700 hover:bg-slate-50 transition shadow-sm">
+              <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> রিফ্রেশ
             </button>
-          </form>
+            <button onClick={() => setIsLoggedIn(false)} className="flex items-center gap-2 bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-medium border border-red-100 hover:bg-red-100 transition">
+              <LogOut size={18} /> লগআউট
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* --- আপলোড করা কাজসমূহ --- */}
-          <div>
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-slate-700"><LayoutGrid/> আপনার আপলোড করা কাজ ({projects.length})</h2>
-            <div className="space-y-4">
-              {projects.length === 0 ? <p className="text-slate-400">কোনো ডাটা নেই</p> : projects.map(p => (
-                <div key={p._id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400"><ImageIcon size={24}/></div>
-                    <div>
-                      <h3 className="font-bold text-slate-800">{p.title}</h3>
-                      <p className="text-xs text-slate-400 uppercase">{p.category}</p>
+        {loading ? (
+          <div className="text-center py-24">
+            <div className="animate-bounce mb-4 text-emerald-600 font-bold text-lg text-center">লোড হচ্ছে...</div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {data.map((item) => (
+              <div key={item._id} className="bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:border-emerald-100 transition-all duration-300 relative">
+                <div className="flex justify-between items-start mb-5">
+                  <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${item.type === 'complaint' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
+                    {item.type === 'complaint' ? 'অভিযোগ' : 'মেসেজ'}
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">{new Date(item.date).toLocaleDateString('bn-BD')}</span>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-slate-800 font-bold text-lg">
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                       <User size={16} />
                     </div>
+                    {item.name}
                   </div>
-                  <button onClick={() => handleDelete(p._id)} className="p-3 text-red-400 hover:text-red-600 transition"><Trash2 size={20}/></button>
+                  <div className="flex items-center gap-3 text-slate-600">
+                    <Phone size={16} className="text-slate-400" /> {item.phone}
+                  </div>
+                  {item.area && (
+                    <div className="flex items-center gap-3 text-slate-600">
+                      <MapPin size={16} className="text-slate-400" /> {item.area}
+                    </div>
+                  )}
+                  <div className="mt-5 p-4 bg-slate-50 rounded-2xl text-slate-700 text-sm leading-relaxed border border-slate-100">
+                    <MessageSquare size={16} className="mb-2 text-emerald-500" />
+                    "{item.message}"
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+        )}
 
-          {/* --- অভিযোগ তালিকা --- */}
-          <div>
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-slate-700"><MessageSquare/> জনগণের অভিযোগসমূহ ({complaints.length})</h2>
-            <div className="space-y-4">
-              {complaints.length === 0 ? <p className="text-slate-400">কোনো অভিযোগ নেই</p> : complaints.map(item => (
-                <div key={item._id} className="bg-white p-6 rounded-[2rem] shadow-sm border border-l-4 border-l-emerald-500">
-                  <div className="flex items-center gap-3 text-slate-800 font-bold mb-2">
-                    <User size={16} className="text-emerald-500" /> {item.name}
-                  </div>
-                  <p className="text-sm text-slate-600 mb-3 italic">"{item.message}"</p>
-                  <div className="text-[11px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-lg">ফোন: {item.phone}</div>
-                </div>
-              ))}
-            </div>
+        {!loading && data.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300">
+            <p className="text-slate-400 font-medium text-lg">এখনো কোনো ডাটা পাওয়া যায়নি।</p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
