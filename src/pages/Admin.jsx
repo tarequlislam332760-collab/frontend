@@ -15,12 +15,10 @@ const Admin = () => {
     const [formData, setFormData] = useState({ title: '', image: '', category: 'project' });
     const [navForm, setNavForm] = useState({ name: '', link: '' });
 
-    // ✅ আপনার নতুন ব্যাকএন্ড লিঙ্কটি এখানে আপডেট করা হয়েছে
     const API_BASE = "https://mybackendv1.vercel.app/api";
     const ADMIN_EMAIL = "admin@mp.com"; 
     const ADMIN_PASSWORD = "doctor tuhin";
 
-    // ল্যাঙ্গুয়েজ ডিকশনারি
     const t = {
         en: {
             title: "Admin Dashboard",
@@ -50,7 +48,7 @@ const Admin = () => {
             setNavItems(nav.data);
         } catch (err) { 
             console.error("Error:", err);
-            alert(lang === 'bn' ? "নেটওয়ার্ক এরর! ব্যাকএন্ড কানেক্ট হচ্ছে না।" : "Network Error! Connection failed.");
+            alert(lang === 'bn' ? "নেটওয়ার্ক এরর!" : "Network Error!");
         }
     };
 
@@ -94,6 +92,7 @@ const Admin = () => {
         }
     };
 
+    // --- লগইন পেজ ---
     if (!isLoggedIn) {
         return (
             <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -109,15 +108,15 @@ const Admin = () => {
         );
     }
 
+    // --- ড্যাশবোর্ড পেজ (যেখানে pt-28 যোগ করা হয়েছে) ---
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8 mt-20">
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 pt-28"> 
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8 flex flex-wrap justify-between items-center gap-4">
                     <h1 className="text-xl font-bold">{t[lang].title}</h1>
                     
                     <div className="flex items-center gap-4">
-                        {/* 🌐 Language Switcher Button */}
                         <button 
                             onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')}
                             className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-200"
@@ -173,7 +172,7 @@ const Admin = () => {
                     </div>
                 )}
 
-                {/* Upload Content Tab (Simplified for brevity) */}
+                {/* Upload Content Tab */}
                 {activeTab === 'upload' && (
                     <div className="grid lg:grid-cols-3 gap-8">
                         <form onSubmit={handleUpload} className="bg-white p-6 rounded-3xl border h-fit space-y-4 shadow-sm">
