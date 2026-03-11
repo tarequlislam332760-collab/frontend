@@ -1,18 +1,23 @@
 import React, { useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Projects from "./pages/Projects";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Complaint from "./pages/Complaint";
-import Admin from "./pages/Admin"; // 🔥 নতুন অ্যাডমিন পেজ ইমপোর্ট করুন
+import Admin from "./pages/Admin"; 
 import Navbar from "./component/Navbar";
 import Footer from "./components/Footer";
 import FloatingContact from "./components/FloatingContact";
 
-function App() {
+// মূল লজিকটি এখানে আলাদা করা হয়েছে যাতে useLocation কাজ করে
+function AppContent() {
   const [lang, setLang] = useState("bn");
+  const location = useLocation();
+
+  // চেক করা হচ্ছে আমরা কি এখন অ্যাডমিন পেজে আছি কি না
+  const isAdminPage = location.pathname === "/admin";
 
   const translations = {
     bn: { welcome: "স্বাগতম" },
@@ -22,8 +27,9 @@ function App() {
   const t = translations[lang];
 
   return (
-    <BrowserRouter>
-      <Navbar lang={lang} setLang={setLang} />
+    <>
+      {/* যদি অ্যাডমিন পেজ না হয়, তবেই কেবল সাধারণ নেভবার দেখাবে */}
+      {!isAdminPage && <Navbar lang={lang} setLang={setLang} />}
       
       <Routes>
         <Route path="/" element={<Home lang={lang} t={t} />} />
@@ -32,14 +38,20 @@ function App() {
         <Route path="/Blog" element={<Blog lang={lang} t={t} />} />
         <Route path="/Contact" element={<Contact lang={lang} t={t} />} />
         <Route path="/Complaint" element={<Complaint lang={lang} t={t} />} />
-        {/* 🔥 অ্যাডমিন ড্যাশবোর্ড রাউট */}
         <Route path="/admin" element={<Admin lang={lang} />} /> 
       </Routes>
 
-      <Footer lang={lang} t={t} /> 
+      {/* অ্যাডমিন পেজে ফুটার এবং ফ্লোটিং বাটন দেখাবে না */}
+      {!isAdminPage && <Footer lang={lang} t={t} />} 
+      {!isAdminPage && <FloatingContact lang={lang} />}
+    </>
+  );
+}
 
-      {/* স্ক্রিনের নিচে ডানে ভেসে থাকবে এই বাটনটি */}
-      <FloatingContact lang={lang} />
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
