@@ -19,7 +19,7 @@ const Complaint = ({ lang = 'bn' }) => {
       placeholderMessage: "এখানে বিস্তারিতভাবে আপনার সমস্যার কথা লিখুন...",
       btnSubmit: "অভিযোগ জমা দিন",
       alertSuccess: "ধন্যবাদ! আপনার অভিযোগটি সফলভাবে জমা হয়েছে।",
-      alertError: "দুঃখিত, অভিযোগ জমা দিতে সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।"
+      alertError: "দুঃখিত, অভিযোগ জমা দিতে সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।"
     },
     en: {
       badge: "Direct Action Box",
@@ -30,7 +30,7 @@ const Complaint = ({ lang = 'bn' }) => {
       actionTitle: "Fast Action",
       actionDesc: "Initial steps will be taken within 72 hours of receiving the complaint.",
       formTitle: "Submit Your Complaint",
-      placeholderName: "Enter your name",
+      placeholderName: "Enter name",
       placeholderPhone: "Enter mobile number",
       placeholderArea: "Which area is facing the problem?",
       placeholderMessage: "Write details of your problem here...",
@@ -41,14 +41,7 @@ const Complaint = ({ lang = 'bn' }) => {
   };
 
   const content = translations[lang] || translations['bn'];
-
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    area: '',
-    message: ''
-  });
-
+  const [formData, setFormData] = useState({ name: '', phone: '', area: '', message: '' });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -59,11 +52,9 @@ const Complaint = ({ lang = 'bn' }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); 
-    
     try {
-      // ✅ লিঙ্ক আপডেট করা হয়েছে
-      const response = await axios.post('https://backend-phi-eight-82.vercel.app/api/complaints', formData);
-      
+      // ✅ নতুন লিঙ্ক আপডেট করা হয়েছে
+      const response = await axios.post('https://mybackendv1.vercel.app/api/complaints', formData);
       if (response.data.success) {
         alert(content.alertSuccess);
         setFormData({ name: '', phone: '', area: '', message: '' });
@@ -71,7 +62,7 @@ const Complaint = ({ lang = 'bn' }) => {
         alert("সার্ভার এরর: " + response.data.error);
       }
     } catch (error) {
-      console.error("Submission error:", error);
+      console.error("Error:", error);
       alert("নেটওয়ার্ক এরর! অনুগ্রহ করে ইন্টারনেট কানেকশন চেক করুন।");
     } finally {
       setLoading(false);
@@ -90,7 +81,6 @@ const Complaint = ({ lang = 'bn' }) => {
             {content.titleMain} <span className="text-emerald-600">{content.titleSub}</span>
           </h1>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-4 space-y-4 order-2 lg:order-1">
             <div className="bg-white p-6 rounded-2xl border-b-4 border-emerald-500 shadow-md">
@@ -98,13 +88,7 @@ const Complaint = ({ lang = 'bn' }) => {
               <h3 className="text-lg font-bold text-slate-800">{content.privacyTitle}</h3>
               <p className="text-slate-500 mt-2 text-sm">{content.privacyDesc}</p>
             </div>
-            <div className="bg-white p-6 rounded-2xl border-b-4 border-blue-500 shadow-md">
-              <Clock size={28} className="text-blue-600 mb-4" />
-              <h3 className="text-lg font-bold text-slate-800">{content.actionTitle}</h3>
-              <p className="text-slate-500 mt-2 text-sm">{content.actionDesc}</p>
-            </div>
           </div>
-
           <div className="lg:col-span-8 bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-emerald-50 order-1 lg:order-2">
             <h2 className="text-2xl font-bold text-slate-800 mb-8">{content.formTitle}</h2>
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -115,8 +99,7 @@ const Complaint = ({ lang = 'bn' }) => {
               <input type="text" name="area" value={formData.area} onChange={handleChange} placeholder={content.placeholderArea} required className="w-full px-5 py-3.5 rounded-xl bg-slate-50 border outline-none focus:border-emerald-500" />
               <textarea name="message" value={formData.message} onChange={handleChange} rows="4" placeholder={content.placeholderMessage} required className="w-full px-5 py-4 rounded-xl bg-slate-50 border outline-none focus:border-emerald-500 resize-none"></textarea>
               <button type="submit" disabled={loading} className="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3">
-                {loading ? "জমা হচ্ছে..." : content.btnSubmit}
-                <Send size={18} />
+                {loading ? "জমা হচ্ছে..." : content.btnSubmit} <Send size={18} />
               </button>
             </form>
           </div>
@@ -125,5 +108,4 @@ const Complaint = ({ lang = 'bn' }) => {
     </div>
   );
 };
-
 export default Complaint;
