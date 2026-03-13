@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Hero from '../component/Hero'; 
-import Projects from '../component/Projects';      
-import Blog from '../component/Blog';              
+import Hero from '../components/Hero'; 
+import Projects from './Projects';      
+import Blog from './Blog';              
 import About from './About'; 
-import Contact from '../component/Contact';
-import Complaint from '../component/Complaint'
+import Contact from './Contact';
+import Complaint from './Complaint'
 
 const Home = ({ lang }) => {
   // ১. নিচে থাকা এক্সট্রা সেকশনটির জন্য ট্রান্সলেশন ডাটা
