@@ -1,28 +1,31 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Menu, X } from "lucide-react"; 
-import { Link } from "react-router-dom"; // যদি আলাদা পেজে যেতে চান
+import { Link } from "react-router-dom";
 
 function Navbar({ lang, setLang }) {
   const [isOpen, setIsOpen] = useState(false);
   const [siteLogo, setSiteLogo] = useState(null);
-  const [dynamicNavItems, setDynamicNavItems] = useState([]); // ডাটাবেজ থেকে আসা মেনু
+  const [dynamicNavItems, setDynamicNavItems] = useState([]); 
   const API_BASE = "https://mybackendv1.vercel.app/api"; 
 
+  // ১. আপনার আগের যে মেনুগুলো ছিল সেগুলোকে এখানে ডিফাইন করছি
+  const staticNavItems = [
+    { id: "about", bn: "পরিচিতি", en: "About" },
+    { id: "projects", bn: "প্রজেক্ট", en: "Project" },
+    { id: "blog", bn: "ব্লগ", en: "Blog" },
+    { id: "contact", bn: "যোগাযোগ", en: "Contact" },
+  ];
+
   useEffect(() => {
-    // লোগো এবং মেনু একসাথে আনা
     const fetchData = async () => {
       try {
         const [contentRes, navRes] = await Promise.all([
           axios.get(`${API_BASE}/content`),
           axios.get(`${API_BASE}/nav`)
         ]);
-
-        // লোগো সেট করা
         const logoData = contentRes.data.find(item => item.category === 'logo');
         if (logoData) setSiteLogo(logoData.image);
-
-        // মেনু সেট করা (অ্যাডমিন প্যানেল থেকে আসা ডাটা)
         setDynamicNavItems(navRes.data);
       } catch (err) {
         console.error("Fetch Error:", err);
@@ -44,24 +47,30 @@ function Navbar({ lang, setLang }) {
           </a>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             
-            {/* হোম লিঙ্ক ডিফল্টভাবে থাকছে */}
+            {/* ডিফল্ট হোম লিঙ্ক */}
             <a href="#home" className="text-gray-700 hover:text-emerald-600 font-medium transition-all">
                {lang === 'bn' ? 'হোম' : 'Home'}
             </a>
 
-            {/* অ্যাডমিন প্যানেল থেকে আসা মেনুগুলো এখানে লুপ হবে */}
+            {/* ২. আপনার আগের স্ট্যাটিক মেনুগুলো দেখানো হচ্ছে */}
+            {staticNavItems.map((item) => (
+              <a key={item.id} href={`#${item.id}`} className="text-gray-700 hover:text-emerald-600 font-medium transition-all">
+                {lang === 'bn' ? item.bn : item.en}
+              </a>
+            ))}
+
+            {/* ৩. অ্যাডমিন প্যানেল থেকে আসা নতুন ডাইনামিক মেনুগুলো */}
             {dynamicNavItems
-              .filter(item => item.lang === lang) // ভাষা অনুযায়ী ফিল্টার
+              .filter(item => item.lang === lang) 
               .map((item) => (
                 item.link.startsWith('#') ? (
-                  <a key={item._id} href={item.link} className="text-gray-700 hover:text-emerald-600 font-medium transition-all relative group">
+                  <a key={item._id} href={item.link} className="text-gray-700 hover:text-emerald-600 font-medium">
                     {item.name}
-                    <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-emerald-600 transition-all group-hover:w-full"></span>
                   </a>
                 ) : (
-                  <Link key={item._id} to={item.link} className="text-gray-700 hover:text-emerald-600 font-medium transition-all">
+                  <Link key={item._id} to={item.link} className="text-gray-700 hover:text-emerald-600 font-medium">
                     {item.name}
                   </Link>
                 )
@@ -69,13 +78,12 @@ function Navbar({ lang, setLang }) {
 
             <button
               onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')}
-              className="bg-emerald-50 px-4 py-1.5 rounded-full text-xs font-bold text-emerald-700 border border-emerald-100 hover:bg-emerald-100 transition-colors"
+              className="bg-emerald-50 px-4 py-1.5 rounded-full text-xs font-bold text-emerald-700 border border-emerald-100"
             >
               {lang === 'bn' ? 'ENGLISH' : 'বাংলা'}
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button onClick={() => setIsOpen(!isOpen)} className="text-emerald-800 p-2">
               {isOpen ? <X size={28} /> : <Menu size={28} />}
@@ -84,18 +92,21 @@ function Navbar({ lang, setLang }) {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-white border-t p-4 space-y-4 shadow-lg">
+           <a href="#home" onClick={() => setIsOpen(false)} className="block text-gray-700 font-medium">হোম / Home</a>
+           
+           {staticNavItems.map((item) => (
+              <a key={item.id} href={`#${item.id}`} onClick={() => setIsOpen(false)} className="block text-gray-700 font-medium">
+                {lang === 'bn' ? item.bn : item.en}
+              </a>
+           ))}
+
            {dynamicNavItems
               .filter(item => item.lang === lang)
               .map((item) => (
-                <a 
-                  key={item._id} 
-                  href={item.link} 
-                  onClick={() => setIsOpen(false)}
-                  className="block text-gray-700 font-medium hover:text-emerald-600"
-                >
+                <a key={item._id} href={item.link} onClick={() => setIsOpen(false)} className="block text-gray-700 font-medium text-blue-600">
                   {item.name}
                 </a>
            ))}
