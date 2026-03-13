@@ -15,8 +15,6 @@ const Admin = () => {
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ title: '', image: '', category: 'project' });
     const [navForm, setNavForm] = useState({ name: '', link: '' });
-
-    // ✅ Hero Section এর জন্য নতুন স্টেট
     const [heroForm, setHeroForm] = useState({ heroTitle: '', heroSubtitle: '', heroImage: '' });
 
     const API_BASE = "https://mybackendv1.vercel.app/api";
@@ -42,11 +40,12 @@ const Admin = () => {
 
     const fetchData = async () => {
         try {
+            // ✅ complaints এর জায়গায় complaint করে দেওয়া হয়েছে
             const [comp, cont, nav, hero] = await Promise.all([
-                axios.get(`${API_BASE}/complaints`),
+                axios.get(`${API_BASE}/complaint`), 
                 axios.get(`${API_BASE}/content`),
                 axios.get(`${API_BASE}/nav`),
-                axios.get(`${API_BASE}/settings`) // ✅ Hero data fetch
+                axios.get(`${API_BASE}/settings`)
             ]);
             setComplaints(comp.data);
             setContents(cont.data);
@@ -58,7 +57,7 @@ const Admin = () => {
                     heroImage: hero.data.heroImage || ''
                 });
             }
-        } catch (err) { console.error("Error:", err); }
+        } catch (err) { console.error("Data fetch error:", err); }
     };
 
     const handleLogin = (e) => {
@@ -67,34 +66,41 @@ const Admin = () => {
         else alert("Wrong Credentials!");
     };
 
-    // ✅ Hero Update Function
     const handleHeroUpdate = async (e) => {
         e.preventDefault();
         try {
             await axios.put(`${API_BASE}/settings/update`, heroForm);
-            alert(lang === 'bn' ? "হিরো সেকশন আপডেট হয়েছে!" : "Hero Section Updated!");
+            alert(lang === 'bn' ? "হিরো সেকশন আপডেট হয়েছে!" : "Hero Section Updated!");
             fetchData();
-        } catch (err) { alert("Failed to update hero section!"); }
+        } catch (err) { alert("Failed to update hero!"); }
     };
 
-    // --- আপলোড এবং আপডেট ফাংশন ---
+    // অভিযোগ ডিলিট করার ফাংশন
+    const deleteComplaint = async (id) => {
+        if (window.confirm(lang === 'bn' ? "অভিযোগটি ডিলিট করতে চান?" : "Delete this complaint?")) {
+            try {
+                await axios.delete(`${API_BASE}/complaint/${id}`);
+                fetchData();
+            } catch (err) { alert("Delete failed!"); }
+        }
+    };
+
     const handleUpload = async (e) => {
         e.preventDefault();
         try {
             if (editingId) {
                 await axios.put(`${API_BASE}/content/${editingId}`, formData);
-                alert(lang === 'bn' ? "আপডেট হয়েছে!" : "Updated!");
             } else {
                 await axios.post(`${API_BASE}/content`, formData);
-                alert(lang === 'bn' ? "সফলভাবে আপলোড হয়েছে!" : "Upload Successful!");
             }
             cancelEdit();
             fetchData();
+            alert("Success!");
         } catch (err) { alert("Failed!"); }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm(lang === 'bn' ? "ডিলিট করতে চান?" : "Want to delete?")) {
+        if (window.confirm("Delete?")) {
             await axios.delete(`${API_BASE}/content/${id}`);
             fetchData();
         }
@@ -115,9 +121,9 @@ const Admin = () => {
         e.preventDefault();
         try {
             await axios.post(`${API_BASE}/nav`, navForm);
-            alert("Success!");
             setNavForm({ name: '', link: '' });
             fetchData();
+            alert("Success!");
         } catch (err) { alert("Failed!"); }
     };
 
@@ -165,7 +171,28 @@ const Admin = () => {
                     <button onClick={() => setActiveTab('manageNav')} className={`px-6 py-2 rounded-full font-bold ${activeTab === 'manageNav' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>{t[lang].tabs.nav}</button>
                 </div>
 
-                {/* ✅ Hero Section Tab */}
+                {/* Complaints Tab */}
+                {activeTab === 'complaints' && (
+                    <div className="bg-white rounded-3xl border p-6 shadow-sm space-y-4">
+                        <h2 className="text-xl font-bold flex items-center gap-2"><MessageSquare className="text-blue-500"/> {t[lang].tabs.comp} ({complaints.length})</h2>
+                        <div className="grid gap-4">
+                            {complaints.length === 0 ? <p className="text-center text-gray-500 py-10">কোনো অভিযোগ পাওয়া যায়নি।</p> : 
+                            complaints.map(c => (
+                                <div key={c._id} className="p-4 rounded-2xl bg-slate-50 border flex justify-between items-start">
+                                    <div>
+                                        <p className="font-bold text-blue-700">{c.name} | {c.phone}</p>
+                                        <p className="bg-white p-3 rounded-xl border mt-2 italic text-slate-600">"{c.message}"</p>
+                                    </div>
+                                    <button onClick={() => deleteComplaint(c._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors">
+                                        <Trash2 size={20}/>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Hero Tab */}
                 {activeTab === 'hero' && (
                     <div className="max-w-2xl mx-auto">
                         <form onSubmit={handleHeroUpdate} className="bg-white p-8 rounded-3xl border shadow-sm space-y-4">
@@ -182,7 +209,7 @@ const Admin = () => {
                                 <label className="text-sm font-bold text-gray-600">Hero Image URL</label>
                                 <input type="text" className="w-full p-3 border rounded-xl outline-none" value={heroForm.heroImage} onChange={(e)=>setHeroForm({...heroForm, heroImage: e.target.value})} required />
                             </div>
-                            <button className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-md hover:bg-green-700 transition-all">Save Changes</button>
+                            <button className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg">Save Changes</button>
                         </form>
                     </div>
                 )}
@@ -190,27 +217,25 @@ const Admin = () => {
                 {/* Upload Content Tab */}
                 {activeTab === 'upload' && (
                     <div className="grid lg:grid-cols-3 gap-8">
-                        {/* Form */}
                         <form onSubmit={handleUpload} className={`bg-white p-6 rounded-3xl border h-fit space-y-4 shadow-sm ${editingId ? 'ring-2 ring-blue-500' : ''}`}>
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-lg font-bold flex items-center gap-2 text-blue-600"><PlusCircle size={20}/> {t[lang].forms.newContent}</h2>
+                            <div className="flex justify-between items-center text-blue-600">
+                                <h2 className="text-lg font-bold flex items-center gap-2"><PlusCircle size={20}/> {t[lang].forms.newContent}</h2>
                                 {editingId && <button type="button" onClick={cancelEdit} className="text-gray-400 hover:text-red-500"><X size={20}/></button>}
                             </div>
-                            <input type="text" placeholder="Title" className="w-full p-3 border rounded-xl outline-none focus:border-blue-500" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
-                            <input type="text" placeholder="Image URL" className="w-full p-3 border rounded-xl outline-none focus:border-blue-500" value={formData.image} onChange={(e) => setFormData({...formData, image: e.target.value})} required />
+                            <input type="text" placeholder="Title" className="w-full p-3 border rounded-xl outline-none" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
+                            <input type="text" placeholder="Image URL" className="w-full p-3 border rounded-xl outline-none" value={formData.image} onChange={(e) => setFormData({...formData, image: e.target.value})} required />
                             <select className="w-full p-3 border rounded-xl font-bold outline-none" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
                                 <option value="project">Project</option>
                                 <option value="blog">Blog</option>
                             </select>
-                            <button type="submit" className={`w-full text-white py-3 rounded-xl font-bold transition-all ${editingId ? 'bg-green-600' : 'bg-blue-600'}`}>{t[lang].forms.save}</button>
+                            <button type="submit" className={`w-full text-white py-3 rounded-xl font-bold ${editingId ? 'bg-green-600' : 'bg-blue-600'}`}>{t[lang].forms.save}</button>
                         </form>
 
-                        {/* Content List Area */}
                         <div className="lg:col-span-2 bg-white p-6 rounded-3xl border shadow-sm">
                             <h2 className="font-bold text-slate-700 mb-4">সব আপলোড ({contents.length})</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2">
                                 {contents.map(item => (
-                                    <div key={item._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-2xl border hover:border-blue-200 transition-all">
+                                    <div key={item._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-2xl border">
                                         <div className="flex items-center gap-3">
                                             <img src={item.image} alt="" className="w-12 h-12 rounded-xl object-cover" />
                                             <div>
@@ -219,8 +244,8 @@ const Admin = () => {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <button onClick={() => startEdit(item)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors"><Edit3 size={18}/></button>
-                                            <button onClick={() => handleDelete(item._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 size={18}/></button>
+                                            <button onClick={() => startEdit(item)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-full"><Edit3 size={18}/></button>
+                                            <button onClick={() => handleDelete(item._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full"><Trash2 size={18}/></button>
                                         </div>
                                     </div>
                                 ))}
@@ -229,20 +254,7 @@ const Admin = () => {
                     </div>
                 )}
 
-                {/* Complaints Tab */}
-                {activeTab === 'complaints' && (
-                    <div className="bg-white rounded-3xl border p-6 shadow-sm space-y-4">
-                        <h2 className="text-xl font-bold flex items-center gap-2"><MessageSquare className="text-blue-500"/> {t[lang].tabs.comp} ({complaints.length})</h2>
-                        {complaints.map(c => (
-                            <div key={c._id} className="p-4 rounded-2xl bg-slate-50 border">
-                                <p className="font-bold text-blue-700">{c.name} | {c.phone}</p>
-                                <p className="bg-white p-3 rounded-xl border mt-2 italic text-slate-600">"{c.message}"</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Navbar Setup Tab */}
+                {/* Navbar Tab */}
                 {activeTab === 'manageNav' && (
                     <div className="grid md:grid-cols-2 gap-8">
                         <form onSubmit={addNavItem} className="bg-white p-6 rounded-3xl border shadow-sm space-y-4 h-fit">
@@ -256,7 +268,7 @@ const Admin = () => {
                             {navItems.map(item => (
                                 <div key={item._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border">
                                     <span className="font-medium">{item.name}</span>
-                                    <button onClick={() => deleteNav(item._id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"><Trash2 size={16}/></button>
+                                    <button onClick={() => deleteNav(item._id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash2 size={16}/></button>
                                 </div>
                             ))}
                         </div>
