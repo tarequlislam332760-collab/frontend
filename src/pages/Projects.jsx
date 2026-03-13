@@ -9,8 +9,10 @@ const Projects = ({ lang = 'bn' }) => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await axios.get('https://backend-phi-eight-82.vercel.app/api/content');
-        // শুধু প্রজেক্টগুলো ফিল্টার করা
+        // ✅ এখানে আপনার নতুন ব্যাকএন্ড লিঙ্কটি আপডেট করে দিলাম
+        const res = await axios.get('https://mybackendv1.vercel.app/api/content');
+        
+        // শুধু প্রজেক্টগুলো ফিল্টার করা (ডাটাবেজে ক্যাটাগরি 'project' ছোট হাতের অক্ষরে আছে)
         const onlyProjects = res.data.filter(item => item.category === 'project');
         setProjects(onlyProjects);
       } catch (err) {
@@ -39,14 +41,20 @@ const Projects = ({ lang = 'bn' }) => {
                 <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-xs">{project.status || 'সম্পন্ন'}</span>
                 <h3 className="text-xl font-bold mt-3">{project.title}</h3>
                 <div className="mt-4 text-slate-500 text-sm space-y-2">
-                  <div className="flex items-center gap-2"><MapPin size={16}/> {project.location || 'এলাকা নির্দিষ্ট নয়'}</div>
+                  <div className="flex items-center gap-2">
+                    <MapPin size={16}/> {project.location || 'এলাকা নির্দিষ্ট নয়'}
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
         
-        {projects.length === 0 && <p className="text-center text-slate-400">এখনো কোনো প্রজেক্ট আপলোড করা হয়নি।</p>}
+        {projects.length === 0 && (
+          <p className="text-center text-slate-400 py-10">
+            {lang === 'bn' ? 'এখনো কোনো প্রজেক্ট আপলোড করা হয়নি।' : 'No projects uploaded yet.'}
+          </p>
+        )}
       </div>
     </section>
   );
