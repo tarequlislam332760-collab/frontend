@@ -1,11 +1,14 @@
-// ... (বাকি ইম্পোর্ট ঠিক আছে)
+import React, { useState, useEffect } from "react"; // useState এবং useEffect এখানে থাকতে হবে
+import { NavLink, Link } from "react-router-dom";
+import axios from "axios";
+import { Menu, X } from "lucide-react"; 
 
 function Navbar({ lang, setLang }) {
   const [isOpen, setIsOpen] = useState(false);
   const [navItems, setNavItems] = useState([]);
   const [siteLogo, setSiteLogo] = useState(null);
 
-  // লিঙ্কটি আপনার অ্যাডমিন প্যানেলের লিঙ্কের সাথে হুবহু মিল রাখুন
+  // আপনার সঠিক ব্যাকএন্ড লিঙ্কটি এখানে দিন
   const API_BASE = "https://mybackendv1.vercel.app/api"; 
 
   useEffect(() => {
@@ -16,9 +19,9 @@ function Navbar({ lang, setLang }) {
           axios.get(`${API_BASE}/content`)
         ]);
         
-        console.log("Nav Data:", navRes.data); // কনসোলে চেক করার জন্য
         setNavItems(navRes.data);
         
+        // লোগো খুঁজে বের করা
         const logoData = contentRes.data.find(item => item.category === 'logo');
         if (logoData) setSiteLogo(logoData.image);
       } catch (err) {
@@ -28,9 +31,8 @@ function Navbar({ lang, setLang }) {
     fetchData();
   }, []);
 
-  // নেভলিঙ্ক স্টাইল
   const activeStyle = ({ isActive }) =>
-    `font-medium transition-all ${isActive ? "text-emerald-700 font-bold border-b-2 border-emerald-600" : "text-gray-700 hover:text-emerald-600"}`;
+    `font-medium transition-all ${isActive ? "text-emerald-700 font-bold border-b-2 border-emerald-600 pb-1" : "text-gray-700 hover:text-emerald-600"}`;
 
   return (
     <nav className="fixed w-full bg-white/70 backdrop-blur-md border-b border-gray-100 shadow-sm z-50">
@@ -41,7 +43,7 @@ function Navbar({ lang, setLang }) {
             <img
               src={siteLogo || "https://via.placeholder.com/150"} 
               alt="Logo"
-              className="w-10 h-10 rounded-full object-cover border border-emerald-500"
+              className="w-10 h-10 rounded-full object-cover border border-emerald-500 shadow-sm"
             />
             <div className="font-bold text-lg text-emerald-900">
                {lang === 'bn' ? 'নাসের রহমান এমপি' : 'Nasir Rahman MP'}
@@ -53,9 +55,8 @@ function Navbar({ lang, setLang }) {
             {navItems && navItems
               .filter(item => item.lang === lang)
               .map((item) => (
-                // যদি লিঙ্ক '#' দিয়ে শুরু হয় তবে সাধারণ <a> ট্যাগ ব্যবহার করা নিরাপদ
                 item.link.startsWith('#') ? (
-                  <a key={item._id} href={item.link} className="text-gray-700 hover:text-emerald-600 font-medium">
+                  <a key={item._id} href={item.link} className="text-gray-700 hover:text-emerald-600 font-medium transition-colors">
                     {item.name}
                   </a>
                 ) : (
@@ -65,10 +66,9 @@ function Navbar({ lang, setLang }) {
                 )
             ))}
 
-            {/* Language Toggle */}
             <button
               onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')}
-              className="bg-gray-100 px-4 py-1.5 rounded-full text-xs font-bold text-emerald-700 border border-gray-200"
+              className="bg-emerald-50 px-4 py-1.5 rounded-full text-xs font-bold text-emerald-700 border border-emerald-100 hover:bg-emerald-100 transition-colors"
             >
               {lang === 'bn' ? 'ENGLISH' : 'বাংলা'}
             </button>
@@ -76,7 +76,7 @@ function Navbar({ lang, setLang }) {
 
           {/* Mobile Button */}
           <div className="md:hidden">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-emerald-800">
+            <button onClick={() => setIsOpen(!isOpen)} className="text-emerald-800 p-2">
               {isOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
@@ -85,7 +85,7 @@ function Navbar({ lang, setLang }) {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white border-t px-4 py-6 space-y-2 shadow-xl">
+        <div className="md:hidden bg-white border-t px-4 py-6 space-y-2 shadow-2xl animate-in slide-in-from-top duration-300">
           {navItems
             .filter(item => item.lang === lang)
             .map((item) => (
@@ -93,11 +93,19 @@ function Navbar({ lang, setLang }) {
                 key={item._id} 
                 href={item.link} 
                 onClick={() => setIsOpen(false)}
-                className="block px-3 py-3 text-gray-700 font-medium hover:bg-emerald-50 rounded-xl"
+                className="block px-4 py-3 text-gray-700 font-medium hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-all"
               >
                 {item.name}
               </a>
             ))}
+            <div className="pt-4 border-t mt-2">
+                <button 
+                  onClick={() => {setLang(lang === 'bn' ? 'en' : 'bn'); setIsOpen(false);}}
+                  className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold"
+                >
+                  {lang === 'bn' ? 'Switch to English' : 'বাংলায় দেখুন'}
+                </button>
+            </div>
         </div>
       )}
     </nav>
