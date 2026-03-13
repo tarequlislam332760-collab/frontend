@@ -1,7 +1,7 @@
-import React, { useState } from "react"; // 'import' must be lowercase
+import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
-// Pages
+// Pages (ফাইলের নামের বড় হাতের অক্ষরের সাথে হুবহু মিল রেখে)
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Admin from "./pages/Admin";
@@ -20,10 +20,8 @@ function AppContent() {
   const [lang, setLang] = useState("bn");
   const location = useLocation();
 
-  // Admin page বা তার সাব-পেজ হলে Navbar এবং Footer hide হবে
   const isAdminPage = location.pathname.startsWith("/admin");
 
-  // Language system
   const translations = {
     bn: { welcome: "স্বাগতম" },
     en: { welcome: "Welcome" }
@@ -33,7 +31,6 @@ function AppContent() {
 
   return (
     <>
-      {/* Admin page না হলে Navbar দেখাবে */}
       {!isAdminPage && <Navbar lang={lang} setLang={setLang} />}
 
       <Routes>
@@ -43,15 +40,10 @@ function AppContent() {
         <Route path="/blog" element={<Blog lang={lang} t={t} />} />
         <Route path="/contact" element={<Contact lang={lang} t={t} />} />
         <Route path="/complaint" element={<Complaint lang={lang} t={t} />} />
-
-        {/* Admin Route */}
         <Route path="/admin/*" element={<Admin lang={lang} />} />
-
-        {/* Dynamic Page Route */}
         <Route path="/page/:slug" element={<DynamicPage lang={lang} />} />
       </Routes>
 
-      {/* Admin page না হলে Footer এবং Floating button দেখাবে */}
       {!isAdminPage && <Footer lang={lang} t={t} />}
       {!isAdminPage && <FloatingContact lang={lang} />}
     </>
