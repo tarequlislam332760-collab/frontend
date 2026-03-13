@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Trash2, MessageSquare, LogOut, PlusCircle, Link2, Globe, Edit3, X } from 'lucide-react';
+import { Trash2, MessageSquare, LogOut, PlusCircle, Link2, Globe, Edit3, X, Layout } from 'lucide-react';
 
 const Admin = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,32 +12,52 @@ const Admin = () => {
     const [activeTab, setActiveTab] = useState('complaints');
     const [lang, setLang] = useState('bn');
     
-    // এডিট মুড হ্যান্ডেল করার জন্য স্টেট
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ title: '', image: '', category: 'project' });
     const [navForm, setNavForm] = useState({ name: '', link: '' });
+
+    // ✅ Hero Section এর জন্য নতুন স্টেট
+    const [heroForm, setHeroForm] = useState({ heroTitle: '', heroSubtitle: '', heroImage: '' });
 
     const API_BASE = "https://mybackendv1.vercel.app/api";
     const ADMIN_EMAIL = "admin@mp.com"; 
     const ADMIN_PASSWORD = "doctor tuhin";
 
     const t = {
-        en: { title: "Admin Dashboard", logout: "Logout", tabs: { comp: "Complaints", upload: "Upload Content", nav: "Navbar Setup" }, forms: { addLink: "Add Page Link", liveMenu: "Live Menu Items", newContent: editingId ? "Edit Content" : "New Content", save: editingId ? "Update" : "Save", cancel: "Cancel" } },
-        bn: { title: "অ্যাডমিন ড্যাশবোর্ড", logout: "লগআউট", tabs: { comp: "অভিযোগসমূহ", upload: "কন্টেন্ট আপলোড", nav: "নেভিবার সেটআপ" }, forms: { addLink: "পেজ লিঙ্ক যুক্ত করুন", liveMenu: "লাইভ মেনু আইটেম", newContent: editingId ? "কন্টেন্ট এডিট করুন" : "নতুন কন্টেন্ট", save: editingId ? "আপডেট করুন" : "সেভ করুন", cancel: "বাতিল" } }
+        en: { 
+            title: "Admin Dashboard", 
+            logout: "Logout", 
+            tabs: { comp: "Complaints", upload: "Upload Content", nav: "Navbar Setup", hero: "Hero Section" }, 
+            forms: { addLink: "Add Page Link", liveMenu: "Live Menu Items", newContent: editingId ? "Edit Content" : "New Content", save: editingId ? "Update" : "Save", cancel: "Cancel", updateHero: "Update Hero Section" } 
+        },
+        bn: { 
+            title: "অ্যাডমিন ড্যাশবোর্ড", 
+            logout: "লগআউট", 
+            tabs: { comp: "অভিযোগসমূহ", upload: "কন্টেন্ট আপলোড", nav: "নেভিবার সেটআপ", hero: "হিরো সেকশন" }, 
+            forms: { addLink: "পেজ লিঙ্ক যুক্ত করুন", liveMenu: "লাইভ মেনু আইটেম", newContent: editingId ? "কন্টেন্ট এডিট করুন" : "নতুন কন্টেন্ট", save: editingId ? "আপডেট করুন" : "সেভ করুন", cancel: "বাতিল", updateHero: "হিরো সেকশন আপডেট করুন" } 
+        }
     };
 
     useEffect(() => { if (isLoggedIn) fetchData(); }, [isLoggedIn]);
 
     const fetchData = async () => {
         try {
-            const [comp, cont, nav] = await Promise.all([
+            const [comp, cont, nav, hero] = await Promise.all([
                 axios.get(`${API_BASE}/complaints`),
                 axios.get(`${API_BASE}/content`),
-                axios.get(`${API_BASE}/nav`)
+                axios.get(`${API_BASE}/nav`),
+                axios.get(`${API_BASE}/settings`) // ✅ Hero data fetch
             ]);
             setComplaints(comp.data);
             setContents(cont.data);
             setNavItems(nav.data);
+            if (hero.data) {
+                setHeroForm({
+                    heroTitle: hero.data.heroTitle || '',
+                    heroSubtitle: hero.data.heroSubtitle || '',
+                    heroImage: hero.data.heroImage || ''
+                });
+            }
         } catch (err) { console.error("Error:", err); }
     };
 
@@ -47,13 +67,23 @@ const Admin = () => {
         else alert("Wrong Credentials!");
     };
 
+    // ✅ Hero Update Function
+    const handleHeroUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.put(`${API_BASE}/settings/update`, heroForm);
+            alert(lang === 'bn' ? "হিরো সেকশন আপডেট হয়েছে!" : "Hero Section Updated!");
+            fetchData();
+        } catch (err) { alert("Failed to update hero section!"); }
+    };
+
     // --- আপলোড এবং আপডেট ফাংশন ---
     const handleUpload = async (e) => {
         e.preventDefault();
         try {
             if (editingId) {
                 await axios.put(`${API_BASE}/content/${editingId}`, formData);
-                alert(lang === 'bn' ? "আপডেট হয়েছে!" : "Updated!");
+                alert(lang === 'bn' ? "আপডেট হয়েছে!" : "Updated!");
             } else {
                 await axios.post(`${API_BASE}/content`, formData);
                 alert(lang === 'bn' ? "সফলভাবে আপলোড হয়েছে!" : "Upload Successful!");
@@ -130,11 +160,34 @@ const Admin = () => {
                 {/* Tabs */}
                 <div className="flex flex-wrap gap-2 mb-8">
                     <button onClick={() => setActiveTab('complaints')} className={`px-6 py-2 rounded-full font-bold ${activeTab === 'complaints' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>{t[lang].tabs.comp}</button>
+                    <button onClick={() => setActiveTab('hero')} className={`px-6 py-2 rounded-full font-bold ${activeTab === 'hero' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>{t[lang].tabs.hero}</button>
                     <button onClick={() => setActiveTab('upload')} className={`px-6 py-2 rounded-full font-bold ${activeTab === 'upload' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>{t[lang].tabs.upload}</button>
                     <button onClick={() => setActiveTab('manageNav')} className={`px-6 py-2 rounded-full font-bold ${activeTab === 'manageNav' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>{t[lang].tabs.nav}</button>
                 </div>
 
-                {/* Upload Content Tab (Edit & Delete যুক্ত করা হয়েছে) */}
+                {/* ✅ Hero Section Tab */}
+                {activeTab === 'hero' && (
+                    <div className="max-w-2xl mx-auto">
+                        <form onSubmit={handleHeroUpdate} className="bg-white p-8 rounded-3xl border shadow-sm space-y-4">
+                            <h2 className="text-xl font-bold text-blue-600 flex items-center gap-2 mb-4"><Layout size={22}/> {t[lang].forms.updateHero}</h2>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-600">Main Title</label>
+                                <input type="text" className="w-full p-3 border rounded-xl outline-none" value={heroForm.heroTitle} onChange={(e)=>setHeroForm({...heroForm, heroTitle: e.target.value})} required />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-600">Subtitle</label>
+                                <textarea className="w-full p-3 border rounded-xl outline-none" rows="3" value={heroForm.heroSubtitle} onChange={(e)=>setHeroForm({...heroForm, heroSubtitle: e.target.value})} required />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-600">Hero Image URL</label>
+                                <input type="text" className="w-full p-3 border rounded-xl outline-none" value={heroForm.heroImage} onChange={(e)=>setHeroForm({...heroForm, heroImage: e.target.value})} required />
+                            </div>
+                            <button className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-md hover:bg-green-700 transition-all">Save Changes</button>
+                        </form>
+                    </div>
+                )}
+
+                {/* Upload Content Tab */}
                 {activeTab === 'upload' && (
                     <div className="grid lg:grid-cols-3 gap-8">
                         {/* Form */}
@@ -152,7 +205,7 @@ const Admin = () => {
                             <button type="submit" className={`w-full text-white py-3 rounded-xl font-bold transition-all ${editingId ? 'bg-green-600' : 'bg-blue-600'}`}>{t[lang].forms.save}</button>
                         </form>
 
-                        {/* ✅ Content List Area */}
+                        {/* Content List Area */}
                         <div className="lg:col-span-2 bg-white p-6 rounded-3xl border shadow-sm">
                             <h2 className="font-bold text-slate-700 mb-4">সব আপলোড ({contents.length})</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2">
@@ -176,7 +229,7 @@ const Admin = () => {
                     </div>
                 )}
 
-                {/* Complaints & Nav Tabs আগের মতোই থাকবে... */}
+                {/* Complaints Tab */}
                 {activeTab === 'complaints' && (
                     <div className="bg-white rounded-3xl border p-6 shadow-sm space-y-4">
                         <h2 className="text-xl font-bold flex items-center gap-2"><MessageSquare className="text-blue-500"/> {t[lang].tabs.comp} ({complaints.length})</h2>
@@ -189,6 +242,7 @@ const Admin = () => {
                     </div>
                 )}
 
+                {/* Navbar Setup Tab */}
                 {activeTab === 'manageNav' && (
                     <div className="grid md:grid-cols-2 gap-8">
                         <form onSubmit={addNavItem} className="bg-white p-6 rounded-3xl border shadow-sm space-y-4 h-fit">
