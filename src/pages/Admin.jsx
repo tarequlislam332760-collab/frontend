@@ -16,8 +16,8 @@ const Admin = () => {
     const [contentForm, setContentForm] = useState({ title: '', image: '', category: 'hero', lang: 'bn' });
     const [navForm, setNavForm] = useState({ name: '', link: '', lang: 'bn' });
 
-    // API URL - নিশ্চিত করুন এটি আপনার বর্তমান ব্যাকএন্ড লিঙ্ক
-    const API_BASE = "https://backend-phi-eight-82.vercel.app/api";
+    // API URL
+    const API_BASE = "https://mybackendv1.vercel.app/api"; 
     const ADMIN_EMAIL = "admin@mp.com"; 
     const ADMIN_PASSWORD = "doctor tuhin";
 
@@ -28,7 +28,6 @@ const Admin = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // একসাথে সব ডাটা কল করা হচ্ছে
             const [contRes, navRes, compRes] = await Promise.all([
                 axios.get(`${API_BASE}/content`).catch(() => ({ data: [] })),
                 axios.get(`${API_BASE}/nav`).catch(() => ({ data: [] })),
@@ -57,18 +56,24 @@ const Admin = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            if (editingId) {
-                await axios.put(`${API_BASE}/content/${editingId}`, contentForm);
-                alert("আপডেট সফল! ✅");
-            } else {
-                await axios.post(`${API_BASE}/content`, contentForm);
-                alert("সেভ সফল! ✅");
+            const url = editingId ? `${API_BASE}/content/${editingId}` : `${API_BASE}/content`;
+            const method = editingId ? 'put' : 'post';
+            
+            const response = await axios({
+                method: method,
+                url: url,
+                data: contentForm
+            });
+
+            if (response.data.success || response.status === 200) {
+                alert(editingId ? "আপডেট সফল! ✅" : "সেভ সফল! ✅");
+                setEditingId(null);
+                setContentForm({ title: '', image: '', category: 'hero', lang: 'bn' });
+                fetchData();
             }
-            setEditingId(null);
-            setContentForm({ title: '', image: '', category: 'hero', lang: 'bn' });
-            fetchData();
         } catch (err) { 
-            alert("অপারেশন ফেইল হয়েছে! ব্যাকএন্ড কানেকশন চেক করুন।"); 
+            console.error("Detailed Error:", err.response?.data || err.message);
+            alert(`অপারেশন ফেইল! কারণ: ${err.response?.data?.error || "সার্ভার রেসপন্স করছে না"}`); 
         } finally { 
             setLoading(false); 
         }
@@ -76,21 +81,28 @@ const Admin = () => {
 
     const handleNavSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
-            await axios.post(`${API_BASE}/nav`, navForm);
-            setNavForm({ name: '', link: '', lang: 'bn' });
-            fetchData();
-            alert("মেনু সেভ হয়েছে! ✅");
+            const response = await axios.post(`${API_BASE}/nav`, navForm);
+            if (response.data.success || response.status === 200) {
+                setNavForm({ name: '', link: '', lang: 'bn' });
+                fetchData();
+                alert("মেনু সেভ হয়েছে! ✅");
+            }
         } catch (err) { 
             alert("সেভ করা যায়নি।"); 
+        } finally {
+            setLoading(false);
         }
     };
 
     const deleteItem = async (route, id) => {
         if (window.confirm("আপনি কি নিশ্চিত?")) {
             try {
-                await axios.delete(`${API_BASE}/${route}/${id}`);
-                fetchData();
+                const response = await axios.delete(`${API_BASE}/${route}/${id}`);
+                if (response.data.success || response.status === 200) {
+                    fetchData();
+                }
             } catch (err) { 
                 alert("মুছে ফেলা সম্ভব হয়নি।"); 
             }
@@ -219,7 +231,9 @@ const Admin = () => {
                             </div>
                             <input type="text" placeholder="নাম" className="w-full p-4 border rounded-2xl outline-none" value={navForm.name} onChange={(e)=>setNavForm({...navForm, name: e.target.value})} required />
                             <input type="text" placeholder="লিঙ্ক" className="w-full p-4 border rounded-2xl outline-none" value={navForm.link} onChange={(e)=>setNavForm({...navForm, link: e.target.value})} required />
-                            <button className="w-full bg-slate-800 text-white py-4 rounded-2xl font-black">ADD MENU</button>
+                            <button className="w-full bg-slate-800 text-white py-4 rounded-2xl font-black" disabled={loading}>
+                                {loading ? "লোডিং..." : "ADD MENU"}
+                            </button>
                         </form>
                         <div className="lg:col-span-2 space-y-4">
                             {navItems.map(item => (
