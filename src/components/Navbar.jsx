@@ -1,69 +1,53 @@
-import React, { useState, useEffect } from "react"; // useState এবং useEffect এখানে থাকতে হবে
-import { NavLink, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Menu, X } from "lucide-react"; 
 
 function Navbar({ lang, setLang }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [navItems, setNavItems] = useState([]);
   const [siteLogo, setSiteLogo] = useState(null);
-
-  // আপনার সঠিক ব্যাকএন্ড লিঙ্কটি এখানে দিন
   const API_BASE = "https://mybackendv1.vercel.app/api"; 
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [navRes, contentRes] = await Promise.all([
-          axios.get(`${API_BASE}/nav`),
-          axios.get(`${API_BASE}/content`)
-        ]);
-        
-        setNavItems(navRes.data);
-        
-        // লোগো খুঁজে বের করা
-        const logoData = contentRes.data.find(item => item.category === 'logo');
+    axios.get(`${API_BASE}/content`)
+      .then(res => {
+        const logoData = res.data.find(item => item.category === 'logo');
         if (logoData) setSiteLogo(logoData.image);
-      } catch (err) {
-        console.error("ডাটা লোড করতে সমস্যা:", err);
-      }
-    };
-    fetchData();
+      })
+      .catch(err => console.error("Logo load error:", err));
   }, []);
 
-  const activeStyle = ({ isActive }) =>
-    `font-medium transition-all ${isActive ? "text-emerald-700 font-bold border-b-2 border-emerald-600 pb-1" : "text-gray-700 hover:text-emerald-600"}`;
+  // মেনু আইটেমগুলো ম্যানুয়ালি এখানে দিচ্ছি যাতে স্মুদ স্ক্রল কাজ করে
+  const navItems = [
+    { id: "home", bn: "হোম", en: "Home" },
+    { id: "about", bn: "পরিচিতি", en: "About" },
+    { id: "projects", bn: "প্রজেক্ট", en: "Project" },
+    { id: "blog", bn: "ব্লগ", en: "Blog" },
+    { id: "contact", bn: "যোগাযোগ", en: "Contact" },
+  ];
 
   return (
-    <nav className="fixed w-full bg-white/70 backdrop-blur-md border-b border-gray-100 shadow-sm z-50">
+    <nav className="fixed w-full bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
           
-          <Link to="/" className="flex items-center gap-3">
-            <img
-              src={siteLogo || "https://via.placeholder.com/150"} 
-              alt="Logo"
-              className="w-10 h-10 rounded-full object-cover border border-emerald-500 shadow-sm"
-            />
+          <a href="#home" className="flex items-center gap-3">
+            <img src={siteLogo || "https://via.placeholder.com/150"} alt="Logo" className="w-10 h-10 rounded-full object-cover border border-emerald-500 shadow-sm" />
             <div className="font-bold text-lg text-emerald-900">
                {lang === 'bn' ? 'নাসের রহমান এমপি' : 'Nasir Rahman MP'}
             </div>
-          </Link>
+          </a>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems && navItems
-              .filter(item => item.lang === lang)
-              .map((item) => (
-                item.link.startsWith('#') ? (
-                  <a key={item._id} href={item.link} className="text-gray-700 hover:text-emerald-600 font-medium transition-colors">
-                    {item.name}
-                  </a>
-                ) : (
-                  <NavLink key={item._id} to={item.link} className={activeStyle}>
-                    {item.name}
-                  </NavLink>
-                )
+            {navItems.map((item) => (
+              <a 
+                key={item.id} 
+                href={`#${item.id}`} 
+                className="text-gray-700 hover:text-emerald-600 font-medium transition-all relative group"
+              >
+                {lang === 'bn' ? item.bn : item.en}
+                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-emerald-600 transition-all group-hover:w-full"></span>
+              </a>
             ))}
 
             <button
@@ -74,7 +58,6 @@ function Navbar({ lang, setLang }) {
             </button>
           </div>
 
-          {/* Mobile Button */}
           <div className="md:hidden">
             <button onClick={() => setIsOpen(!isOpen)} className="text-emerald-800 p-2">
               {isOpen ? <X size={28} /> : <Menu size={28} />}
@@ -82,32 +65,6 @@ function Navbar({ lang, setLang }) {
           </div>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-white border-t px-4 py-6 space-y-2 shadow-2xl animate-in slide-in-from-top duration-300">
-          {navItems
-            .filter(item => item.lang === lang)
-            .map((item) => (
-              <a 
-                key={item._id} 
-                href={item.link} 
-                onClick={() => setIsOpen(false)}
-                className="block px-4 py-3 text-gray-700 font-medium hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-all"
-              >
-                {item.name}
-              </a>
-            ))}
-            <div className="pt-4 border-t mt-2">
-                <button 
-                  onClick={() => {setLang(lang === 'bn' ? 'en' : 'bn'); setIsOpen(false);}}
-                  className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold"
-                >
-                  {lang === 'bn' ? 'Switch to English' : 'বাংলায় দেখুন'}
-                </button>
-            </div>
-        </div>
-      )}
     </nav>
   );
 }
