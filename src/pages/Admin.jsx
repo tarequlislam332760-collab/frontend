@@ -36,20 +36,24 @@ const Admin = () => {
         }
     };
 
-    useEffect(() => { if (isLoggedIn) fetchData(); }, [isLoggedIn]);
+    useEffect(() => { 
+        if (isLoggedIn) fetchData(); 
+    }, [isLoggedIn]);
 
     const fetchData = async () => {
         try {
-            // ✅ complaints এর জায়গায় complaint করে দেওয়া হয়েছে
+            // ✅ API Route Fixed: /complaints -> /complaint
             const [comp, cont, nav, hero] = await Promise.all([
-                axios.get(`${API_BASE}/complaint`), 
+                axios.get(`${API_BASE}/complaint`),
                 axios.get(`${API_BASE}/content`),
                 axios.get(`${API_BASE}/nav`),
                 axios.get(`${API_BASE}/settings`)
             ]);
-            setComplaints(comp.data);
-            setContents(cont.data);
-            setNavItems(nav.data);
+            
+            setComplaints(Array.isArray(comp.data) ? comp.data : []);
+            setContents(Array.isArray(cont.data) ? cont.data : []);
+            setNavItems(Array.isArray(nav.data) ? nav.data : []);
+            
             if (hero.data) {
                 setHeroForm({
                     heroTitle: hero.data.heroTitle || '',
@@ -57,13 +61,20 @@ const Admin = () => {
                     heroImage: hero.data.heroImage || ''
                 });
             }
-        } catch (err) { console.error("Data fetch error:", err); }
+        } catch (err) { 
+            console.error("Data fetch error:", err);
+            // Error হ্যান্ডলিং যাতে সাইট ক্র্যাশ না করে
+            setComplaints([]);
+        }
     };
 
     const handleLogin = (e) => {
         e.preventDefault();
-        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) setIsLoggedIn(true);
-        else alert("Wrong Credentials!");
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+            setIsLoggedIn(true);
+        } else {
+            alert(lang === 'bn' ? "ভুল ইমেইল বা পাসওয়ার্ড!" : "Wrong Credentials!");
+        }
     };
 
     const handleHeroUpdate = async (e) => {
@@ -75,9 +86,8 @@ const Admin = () => {
         } catch (err) { alert("Failed to update hero!"); }
     };
 
-    // অভিযোগ ডিলিট করার ফাংশন
     const deleteComplaint = async (id) => {
-        if (window.confirm(lang === 'bn' ? "অভিযোগটি ডিলিট করতে চান?" : "Delete this complaint?")) {
+        if (window.confirm(lang === 'bn' ? "অভিযোগটি মুছে ফেলতে চান?" : "Delete this complaint?")) {
             try {
                 await axios.delete(`${API_BASE}/complaint/${id}`);
                 fetchData();
@@ -142,7 +152,7 @@ const Admin = () => {
                     <form onSubmit={handleLogin} className="space-y-4">
                         <input type="email" placeholder="Email" className="w-full p-3 border rounded-xl" value={email} onChange={(e) => setEmail(e.target.value)} required />
                         <input type="password" placeholder="Password" className="w-full p-3 border rounded-xl" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                        <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">LOGIN</button>
+                        <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">LOGIN</button>
                     </form>
                 </div>
             </div>
@@ -154,98 +164,116 @@ const Admin = () => {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8 flex flex-wrap justify-between items-center gap-4">
-                    <h1 className="text-xl font-bold">{t[lang].title}</h1>
+                    <h1 className="text-xl font-bold text-slate-800">{t[lang].title}</h1>
                     <div className="flex items-center gap-4">
-                        <button onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')} className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full font-bold text-sm">
+                        <button onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')} className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full font-bold text-sm">
                             <Globe size={16} /> {lang === 'bn' ? 'English' : 'বাংলা'}
                         </button>
-                        <button onClick={() => setIsLoggedIn(false)} className="text-red-600 font-bold flex items-center gap-2"><LogOut size={18}/> {t[lang].logout}</button>
+                        <button onClick={() => setIsLoggedIn(false)} className="text-red-600 font-bold flex items-center gap-2 hover:bg-red-50 p-2 rounded-xl transition-all"><LogOut size={18}/> {t[lang].logout}</button>
                     </div>
                 </div>
 
-                {/* Tabs */}
+                {/* Navigation Tabs */}
                 <div className="flex flex-wrap gap-2 mb-8">
-                    <button onClick={() => setActiveTab('complaints')} className={`px-6 py-2 rounded-full font-bold ${activeTab === 'complaints' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>{t[lang].tabs.comp}</button>
-                    <button onClick={() => setActiveTab('hero')} className={`px-6 py-2 rounded-full font-bold ${activeTab === 'hero' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>{t[lang].tabs.hero}</button>
-                    <button onClick={() => setActiveTab('upload')} className={`px-6 py-2 rounded-full font-bold ${activeTab === 'upload' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>{t[lang].tabs.upload}</button>
-                    <button onClick={() => setActiveTab('manageNav')} className={`px-6 py-2 rounded-full font-bold ${activeTab === 'manageNav' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>{t[lang].tabs.nav}</button>
+                    <button onClick={() => setActiveTab('complaints')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'complaints' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border text-slate-600 hover:bg-gray-50'}`}>{t[lang].tabs.comp}</button>
+                    <button onClick={() => setActiveTab('hero')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'hero' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border text-slate-600 hover:bg-gray-50'}`}>{t[lang].tabs.hero}</button>
+                    <button onClick={() => setActiveTab('upload')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'upload' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border text-slate-600 hover:bg-gray-50'}`}>{t[lang].tabs.upload}</button>
+                    <button onClick={() => setActiveTab('manageNav')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'manageNav' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border text-slate-600 hover:bg-gray-50'}`}>{t[lang].tabs.nav}</button>
                 </div>
 
-                {/* Complaints Tab */}
+                {/* --- Content Sections --- */}
+
+                {/* 1. Complaints Tab (The Fix) */}
                 {activeTab === 'complaints' && (
                     <div className="bg-white rounded-3xl border p-6 shadow-sm space-y-4">
-                        <h2 className="text-xl font-bold flex items-center gap-2"><MessageSquare className="text-blue-500"/> {t[lang].tabs.comp} ({complaints.length})</h2>
+                        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
+                            <MessageSquare className="text-blue-500"/> {t[lang].tabs.comp} ({complaints.length})
+                        </h2>
                         <div className="grid gap-4">
-                            {complaints.length === 0 ? <p className="text-center text-gray-500 py-10">কোনো অভিযোগ পাওয়া যায়নি।</p> : 
-                            complaints.map(c => (
-                                <div key={c._id} className="p-4 rounded-2xl bg-slate-50 border flex justify-between items-start">
-                                    <div>
-                                        <p className="font-bold text-blue-700">{c.name} | {c.phone}</p>
-                                        <p className="bg-white p-3 rounded-xl border mt-2 italic text-slate-600">"{c.message}"</p>
-                                    </div>
-                                    <button onClick={() => deleteComplaint(c._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors">
-                                        <Trash2 size={20}/>
-                                    </button>
+                            {complaints.length === 0 ? (
+                                <div className="text-center py-16 bg-slate-50 rounded-3xl border border-dashed">
+                                    <p className="text-slate-400 font-medium">কোনো অভিযোগ পাওয়া যায়নি।</p>
                                 </div>
-                            ))}
+                            ) : (
+                                complaints.map(c => (
+                                    <div key={c._id} className="p-5 rounded-2xl bg-slate-50 border flex justify-between items-start hover:border-blue-200 transition-all group">
+                                        <div className="flex-1">
+                                            <p className="font-bold text-blue-700 flex items-center gap-2">
+                                                {c.name} <span className="text-slate-300">|</span> <span className="text-slate-600">{c.phone}</span>
+                                            </p>
+                                            <div className="bg-white p-4 rounded-xl border mt-3 relative">
+                                                <p className="text-slate-600 italic">"{c.message}"</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => deleteComplaint(c._id)} className="ml-4 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all">
+                                            <Trash2 size={20}/>
+                                        </button>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 )}
 
-                {/* Hero Tab */}
+                {/* 2. Hero Section Tab */}
                 {activeTab === 'hero' && (
                     <div className="max-w-2xl mx-auto">
                         <form onSubmit={handleHeroUpdate} className="bg-white p-8 rounded-3xl border shadow-sm space-y-4">
                             <h2 className="text-xl font-bold text-blue-600 flex items-center gap-2 mb-4"><Layout size={22}/> {t[lang].forms.updateHero}</h2>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-600">Main Title</label>
-                                <input type="text" className="w-full p-3 border rounded-xl outline-none" value={heroForm.heroTitle} onChange={(e)=>setHeroForm({...heroForm, heroTitle: e.target.value})} required />
+                                <label className="text-sm font-bold text-slate-600 px-1">Main Title</label>
+                                <input type="text" className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-100" value={heroForm.heroTitle} onChange={(e)=>setHeroForm({...heroForm, heroTitle: e.target.value})} required />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-600">Subtitle</label>
-                                <textarea className="w-full p-3 border rounded-xl outline-none" rows="3" value={heroForm.heroSubtitle} onChange={(e)=>setHeroForm({...heroForm, heroSubtitle: e.target.value})} required />
+                                <label className="text-sm font-bold text-slate-600 px-1">Subtitle</label>
+                                <textarea className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-100" rows="3" value={heroForm.heroSubtitle} onChange={(e)=>setHeroForm({...heroForm, heroSubtitle: e.target.value})} required />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-600">Hero Image URL</label>
-                                <input type="text" className="w-full p-3 border rounded-xl outline-none" value={heroForm.heroImage} onChange={(e)=>setHeroForm({...heroForm, heroImage: e.target.value})} required />
+                                <label className="text-sm font-bold text-slate-600 px-1">Hero Image URL</label>
+                                <input type="text" className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-100" value={heroForm.heroImage} onChange={(e)=>setHeroForm({...heroForm, heroImage: e.target.value})} required />
                             </div>
-                            <button className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg">Save Changes</button>
+                            <button className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition-all shadow-md">Save All Changes</button>
                         </form>
                     </div>
                 )}
 
-                {/* Upload Content Tab */}
+                {/* 3. Upload Content Tab */}
                 {activeTab === 'upload' && (
                     <div className="grid lg:grid-cols-3 gap-8">
-                        <form onSubmit={handleUpload} className={`bg-white p-6 rounded-3xl border h-fit space-y-4 shadow-sm ${editingId ? 'ring-2 ring-blue-500' : ''}`}>
+                        <form onSubmit={handleUpload} className={`bg-white p-6 rounded-3xl border h-fit space-y-4 shadow-sm transition-all ${editingId ? 'ring-2 ring-blue-500' : ''}`}>
                             <div className="flex justify-between items-center text-blue-600">
-                                <h2 className="text-lg font-bold flex items-center gap-2"><PlusCircle size={20}/> {t[lang].forms.newContent}</h2>
-                                {editingId && <button type="button" onClick={cancelEdit} className="text-gray-400 hover:text-red-500"><X size={20}/></button>}
+                                <h2 className="text-lg font-bold flex items-center gap-2">
+                                    {editingId ? <Edit3 size={20}/> : <PlusCircle size={20}/>} 
+                                    {t[lang].forms.newContent}
+                                </h2>
+                                {editingId && <button type="button" onClick={cancelEdit} className="text-slate-400 hover:text-red-500 bg-gray-100 p-1 rounded-full"><X size={18}/></button>}
                             </div>
-                            <input type="text" placeholder="Title" className="w-full p-3 border rounded-xl outline-none" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
-                            <input type="text" placeholder="Image URL" className="w-full p-3 border rounded-xl outline-none" value={formData.image} onChange={(e) => setFormData({...formData, image: e.target.value})} required />
-                            <select className="w-full p-3 border rounded-xl font-bold outline-none" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
+                            <input type="text" placeholder="Title" className="w-full p-3 border rounded-xl outline-none focus:border-blue-500" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
+                            <input type="text" placeholder="Image URL" className="w-full p-3 border rounded-xl outline-none focus:border-blue-500" value={formData.image} onChange={(e) => setFormData({...formData, image: e.target.value})} required />
+                            <select className="w-full p-3 border rounded-xl font-bold outline-none cursor-pointer" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
                                 <option value="project">Project</option>
                                 <option value="blog">Blog</option>
                             </select>
-                            <button type="submit" className={`w-full text-white py-3 rounded-xl font-bold ${editingId ? 'bg-green-600' : 'bg-blue-600'}`}>{t[lang].forms.save}</button>
+                            <button type="submit" className={`w-full text-white py-3 rounded-xl font-bold shadow-sm transition-all ${editingId ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}>{t[lang].forms.save}</button>
                         </form>
 
                         <div className="lg:col-span-2 bg-white p-6 rounded-3xl border shadow-sm">
-                            <h2 className="font-bold text-slate-700 mb-4">সব আপলোড ({contents.length})</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2">
+                            <h2 className="font-bold text-slate-700 mb-6 flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div> সব আপলোড ({contents.length})
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                                 {contents.map(item => (
-                                    <div key={item._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-2xl border">
+                                    <div key={item._id} className="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border hover:bg-white transition-all">
                                         <div className="flex items-center gap-3">
-                                            <img src={item.image} alt="" className="w-12 h-12 rounded-xl object-cover" />
+                                            <img src={item.image} alt="" className="w-14 h-14 rounded-xl object-cover bg-gray-200 border" />
                                             <div>
-                                                <p className="font-bold text-sm leading-tight">{item.title}</p>
-                                                <span className="text-[10px] uppercase bg-gray-200 px-2 py-0.5 rounded-full">{item.category}</span>
+                                                <p className="font-bold text-slate-800 text-sm leading-tight line-clamp-1">{item.title}</p>
+                                                <span className="text-[10px] font-bold uppercase bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full mt-1 inline-block">{item.category}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <button onClick={() => startEdit(item)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-full"><Edit3 size={18}/></button>
-                                            <button onClick={() => handleDelete(item._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full"><Trash2 size={18}/></button>
+                                            <button onClick={() => startEdit(item)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-all"><Edit3 size={18}/></button>
+                                            <button onClick={() => handleDelete(item._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-all"><Trash2 size={18}/></button>
                                         </div>
                                     </div>
                                 ))}
@@ -254,21 +282,25 @@ const Admin = () => {
                     </div>
                 )}
 
-                {/* Navbar Tab */}
+                {/* 4. Navbar Setup Tab */}
                 {activeTab === 'manageNav' && (
                     <div className="grid md:grid-cols-2 gap-8">
                         <form onSubmit={addNavItem} className="bg-white p-6 rounded-3xl border shadow-sm space-y-4 h-fit">
                             <h2 className="font-bold flex items-center gap-2 text-blue-600"><PlusCircle size={20}/> {t[lang].forms.addLink}</h2>
-                            <input type="text" placeholder="Page Name" className="w-full p-3 border rounded-xl outline-none" value={navForm.name} onChange={(e)=>setNavForm({...navForm, name: e.target.value})} required />
-                            <input type="text" placeholder="URL (e.g. /about)" className="w-full p-3 border rounded-xl outline-none" value={navForm.link} onChange={(e)=>setNavForm({...navForm, link: e.target.value})} required />
-                            <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">সেভ করুন</button>
+                            <input type="text" placeholder="Page Name (e.g. Home)" className="w-full p-3 border rounded-xl outline-none focus:border-blue-500" value={navForm.name} onChange={(e)=>setNavForm({...navForm, name: e.target.value})} required />
+                            <input type="text" placeholder="URL (e.g. /about)" className="w-full p-3 border rounded-xl outline-none focus:border-blue-500" value={navForm.link} onChange={(e)=>setNavForm({...navForm, link: e.target.value})} required />
+                            <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">সেভ করুন</button>
                         </form>
                         <div className="bg-white p-6 rounded-3xl border shadow-sm space-y-3">
-                            <h2 className="font-bold flex items-center gap-2 text-slate-700"><Link2 size={20}/> {t[lang].forms.liveMenu}</h2>
-                            {navItems.map(item => (
-                                <div key={item._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border">
-                                    <span className="font-medium">{item.name}</span>
-                                    <button onClick={() => deleteNav(item._id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash2 size={16}/></button>
+                            <h2 className="font-bold flex items-center gap-2 text-slate-700 mb-2"><Link2 size={20}/> {t[lang].forms.liveMenu}</h2>
+                            {navItems.length === 0 ? <p className="text-slate-400 text-sm italic">No menu items found.</p> : 
+                            navItems.map(item => (
+                                <div key={item._id} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border hover:border-blue-200">
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-slate-700">{item.name}</span>
+                                        <span className="text-[10px] text-slate-400">{item.link}</span>
+                                    </div>
+                                    <button onClick={() => deleteNav(item._id)} className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-all"><Trash2 size={16}/></button>
                                 </div>
                             ))}
                         </div>
