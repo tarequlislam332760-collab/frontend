@@ -7,8 +7,8 @@ import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Complaint from "./pages/Complaint";
 import Admin from "./pages/Admin"; 
-// ✅ নতুন পেজ ইমপোর্ট করুন (যদি ফাইলটি তৈরি করে থাকেন)
-// import Gallery from "./pages/Gallery"; 
+// ✅ শুধুমাত্র একবার ইমপোর্ট করলেই হবে
+import DynamicPage from "./pages/DynamicPage"; 
 
 import Navbar from "./component/Navbar";
 import Footer from "./components/Footer";
@@ -32,14 +32,15 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home lang={lang} t={t} />} />
         <Route path="/about" element={<About lang={lang} t={t} />} />
-        <Route path="/Projects" element={<Projects lang={lang} t={t} />} />
-        <Route path="/Blog" element={<Blog lang={lang} t={t} />} />
-        <Route path="/Contact" element={<Contact lang={lang} t={t} />} />
-        <Route path="/Complaint" element={<Complaint lang={lang} t={t} />} />
+        {/* ছোট হাতের অক্ষর ব্যবহার করা ভালো consistency-র জন্য */}
+        <Route path="/projects" element={<Projects lang={lang} t={t} />} />
+        <Route path="/blog" element={<Blog lang={lang} t={t} />} />
+        <Route path="/contact" element={<Contact lang={lang} t={t} />} />
+        <Route path="/complaint" element={<Complaint lang={lang} t={t} />} />
         <Route path="/admin" element={<Admin lang={lang} />} /> 
 
-        {/* ✅ নতুন কোনো পেজ অ্যাড করলে নিচের মতো করে লাইন যোগ করবেন */}
-        {/* <Route path="/gallery" element={<Gallery lang={lang} t={t} />} /> */}
+        {/* ডাইনামিক রুট */}
+        <Route path="/page/:slug" element={<DynamicPage lang={lang} />} />
       </Routes>
 
       {!isAdminPage && <Footer lang={lang} t={t} />} 
