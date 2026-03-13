@@ -7,28 +7,26 @@ import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Complaint from "./pages/Complaint";
 import Admin from "./pages/Admin"; 
+// ✅ নতুন পেজ ইমপোর্ট করুন (যদি ফাইলটি তৈরি করে থাকেন)
+// import Gallery from "./pages/Gallery"; 
+
 import Navbar from "./component/Navbar";
 import Footer from "./components/Footer";
 import FloatingContact from "./components/FloatingContact";
 
-// মূল লজিকটি এখানে আলাদা করা হয়েছে যাতে useLocation কাজ করে
 function AppContent() {
   const [lang, setLang] = useState("bn");
   const location = useLocation();
-
-  // চেক করা হচ্ছে আমরা কি এখন অ্যাডমিন পেজে আছি কি না
   const isAdminPage = location.pathname === "/admin";
 
   const translations = {
     bn: { welcome: "স্বাগতম" },
     en: { welcome: "Welcome" }
   };
-
   const t = translations[lang];
 
   return (
     <>
-      {/* যদি অ্যাডমিন পেজ না হয়, তবেই কেবল সাধারণ নেভবার দেখাবে */}
       {!isAdminPage && <Navbar lang={lang} setLang={setLang} />}
       
       <Routes>
@@ -39,9 +37,11 @@ function AppContent() {
         <Route path="/Contact" element={<Contact lang={lang} t={t} />} />
         <Route path="/Complaint" element={<Complaint lang={lang} t={t} />} />
         <Route path="/admin" element={<Admin lang={lang} />} /> 
+
+        {/* ✅ নতুন কোনো পেজ অ্যাড করলে নিচের মতো করে লাইন যোগ করবেন */}
+        {/* <Route path="/gallery" element={<Gallery lang={lang} t={t} />} /> */}
       </Routes>
 
-      {/* অ্যাডমিন পেজে ফুটার এবং ফ্লোটিং বাটন দেখাবে না */}
       {!isAdminPage && <Footer lang={lang} t={t} />} 
       {!isAdminPage && <FloatingContact lang={lang} />}
     </>
